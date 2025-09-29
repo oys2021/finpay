@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.models import User
+from users.models import User,Beneficiary
 from rest_framework_simplejwt.tokens import RefreshToken,TokenError
 from django.contrib.auth import authenticate
 
@@ -97,5 +97,28 @@ class LogoutSerializer(serializers.Serializer):
             token.blacklist()
         except TokenError:
             raise serializers.ValidationError({"message": "Token is invalid or expired"})
+        
+class CurrentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "name",
+            "email",
+            "accountType",
+            "country",
+            "state",
+            "address",
+            "phoneNumber",
+            "countryCode"
+        ]
+
+
+
+class BeneficiarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Beneficiary
+        fields = ["id", "name", "bankName", "accountNumber", "accountType", "isDefault", "country"]
+
 
     

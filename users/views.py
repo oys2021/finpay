@@ -2,10 +2,12 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from users.serializers import RegisterSerializer,LoginSerializer,PasswordResetSerializer
+from users.serializers import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from decimal import Decimal
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 @api_view(["POST"])
 def register_view(request):
@@ -86,4 +88,223 @@ def get_user_balances(request):
             "message": str(e)
         }, status=400)
     
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    try:
+        serializer = CurrentUserSerializer(request.user)
+        return Response({
+            "status": 201,
+            "message": "Retrieved currently logged-in user successfully",
+            "data": serializer.data
+        })
+    except Exception as e:
+        return Response({
+            "status": 400,
+            "message": str(e)
+        }, status=400)
+    
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def edit_user_profile(request, id):
+    try:
+        user = User.objects.get(id=id)
+        
+        if request.user.id != user.id:
+            return Response({
+                "status": 403,
+                "message": "You cannot edit another user's profile"
+            }, status=403)
+
+        data = request.data
+        for field in ["first_name", "last_name", "email", "phone_number", 
+                      "country", "tag", "occupation", "address", "dateOfBirth"]:
+            if field in data:
+                setattr(user, field, data[field])
+
+        user.save()
+
+        serializer = RegisterSerializer(user)  
+        return Response({
+            "status": 201,
+            "message": "User edited successfully",
+            "data": serializer.data["data"]["user"] 
+        })
+
+    except User.DoesNotExist:
+        return Response({
+            "status": 400,
+            "message": "User not found"
+        }, status=400)
+    except Exception as e:
+        return Response({
+            "status": 400,
+            "message": str(e)
+        }, status=400)
+    
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_beneficiary(request, id):
+    try:
+        user = User.objects.get(id=id)
+        
+        if request.user.id != user.id:
+            return Response({
+                "status": 403,
+                "message": "You cannot add a beneficiary to another user's account"
+            }, status=403)
+
+        data = request.data
+        beneficiary = Beneficiary.objects.create(
+            user=user,
+            name=data.get("name"),
+            bankName=data.get("bankName"),
+            accountNumber=data.get("accountNumber"),
+            accountType=data.get("accountType"),
+            isDefault=data.get("isDefault", False),
+            country=data.get("country")
+        )
+
+        serializer = BeneficiarySerializer(beneficiary)
+        return Response({
+            "status": 201,
+            "message": "Beneficiary successfully created",
+            "data": serializer.data
+        })
+
+    except User.DoesNotExist:
+        return Response({
+            "status": 400,
+            "message": "User not found"
+        }, status=400)
+    except Exception as e:
+        return Response({
+            "status": 400,
+            "message": str(e)
+        }, status=400)
+    
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_beneficiaries(request):
+    try:
+        page = int(request.query_params.get("page", 0))
+        size = int(request.query_params.get("size", 10))
+        search = request.query_params.get("search", "")
+
+        # Filter beneficiaries of the authenticated user
+        beneficiaries_qs = Beneficiary.objects.filter(user=request.user)
+
+        # Apply search if provided
+        if search:
+            beneficiaries_qs = beneficiaries_qs.filter(
+                Q(name__icontains=search) |
+                Q(bankName__icontains=search) |
+                Q(accountNumber__icontains=search) |
+                Q(accountType__icontains=search) |
+                Q(country__icontains=search)
+            )
+
+        total = beneficiaries_qs.count()
+
+        paginator = Paginator(beneficiaries_qs, size)
+        current_page = page + 1
+        beneficiaries_page = paginator.get_page(current_page)
+
+        serializer = BeneficiarySerializer(beneficiaries_page, many=True)
+
+        return Response({
+            "status": 201,
+            "message": "Retrieved all searched and paginated beneficiaries successfully",
+            "page": page,
+            "size": size,
+            "total": total,
+            "data": serializer.data
+        })
+
+    except Exception as e:
+        return Response({
+            "status": 400,
+            "message": str(e)
+        }, status=400)
+
+
+
+@api_view(["GET", "DELETE"])
+@permission_classes([IsAuthenticated])
+def beneficiary_detail(request, id):
+    try:
+        beneficiary = Beneficiary.objects.get(id=id, user=request.user)
+    except Beneficiary.DoesNotExist:
+        return Response({
+            "status": 400,
+            "message": "Beneficiary not found"
+        }, status=400)
+
+    if request.method == "GET":
+        serializer = BeneficiarySerializer(beneficiary)
+        return Response({
+            "status": 200,
+            "message": "Retrieved a single beneficiary successfully",
+            "data": serializer.data
+        })
+
+    elif request.method == "DELETE":
+        beneficiary.delete()
+        return Response({
+            "status": 200,
+            "message": "Beneficiary deleted successfully",
+            "data": {}
+        })
+    
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def activate_2fa(request):
+    data = request.data
+    phone_number = data.get("phoneNumber")
+    method_type = data.get("type")  
+
+    if not phone_number or not method_type:
+        return Response({
+            "status": 400,
+            "message": "phoneNumber and type are required"
+        }, status=400)
+
+
+    return Response({
+        "status": 200,
+        "message": "You have successfully activated 2FA",
+        "data": {}
+    })
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_verification(request):
+    user = request.user
+
+    redirect_link = f"https://verification.example.com/start?user_id={user.id}"
+
+    return Response({
+        "status": 201,
+        "message": "Verification successfully created",
+        "data": {
+            "redirectLink": redirect_link
+        }
+    })
+
 

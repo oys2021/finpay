@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.conf import settings
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -43,3 +44,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+
+class Beneficiary(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="beneficiaries")
+    name = models.CharField(max_length=255)
+    bankName = models.CharField(max_length=255)
+    accountNumber = models.CharField(max_length=50)
+    accountType = models.CharField(max_length=50)
+    isDefault = models.BooleanField(default=False)
+    country = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.accountNumber})"
