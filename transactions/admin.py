@@ -1,6 +1,3 @@
 from django.contrib import admin
-from cards.models import *
-
-admin.site.register(VirtualCard)
 
 # Register your models here.

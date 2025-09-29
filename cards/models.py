@@ -24,10 +24,10 @@ class VirtualCard(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="cards")
     reference = models.CharField(max_length=255, unique=True)
     card_reference = models.CharField(max_length=255, unique=True)
-    type = models.CharField(max_length=20, default="virtual")  # virtual/debit/credit
+    type = models.CharField(max_length=20, default="virtual")  
     currency = models.CharField(max_length=10, default="USD")
     holder_name = models.CharField(max_length=255)
-    brand = models.CharField(max_length=50)  # Visa, Mastercard
+    brand = models.CharField(max_length=50)  
     expiry_month = models.CharField(max_length=2)
     expiry_year = models.CharField(max_length=2)
     first_six = models.CharField(max_length=6)
