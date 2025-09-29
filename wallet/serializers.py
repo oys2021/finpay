@@ -9,17 +9,3 @@ class UserBalanceSerializer(serializers.Serializer):
     currency = serializers.CharField()
 
 
-from .models import Account
-
-class AccountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Account
-        fields = [
-            "currency",
-            "account_holder",
-            "bank_name",
-            "account_number",
-            "routing_number",
-            "account_type",
-            "address",
-        ]

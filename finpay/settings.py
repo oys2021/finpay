@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL='accounts.User'
+AUTH_USER_MODEL='users.User'
 
 
 REST_FRAMEWORK = {
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'invoice',
     'cards',
     'rest_framework_simplejwt.token_blacklist',
+    'users'
 ]
 
 MIDDLEWARE = [
