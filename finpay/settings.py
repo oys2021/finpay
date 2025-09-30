@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'users',
     'transactions',
-    'notifications'
+    'notifications',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [

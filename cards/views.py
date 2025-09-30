@@ -47,11 +47,11 @@ def virtual_cards(request):
                 }, status=400)
 
             
-            if str(request.user.wallet.id) != str(wallet_id):
-                return Response({
-                    "status": 403,
-                    "message": "You cannot create a card for this wallet"
-                }, status=403)
+            # if str(request.user.wallet.id) != str(wallet_id):
+            #     return Response({
+            #         "status": 403,
+            #         "message": "You cannot create a card for this wallet"
+            #     }, status=403)
 
             wallet = request.user.wallet
 
