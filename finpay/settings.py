@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     'invoice',
     'cards',
     'rest_framework_simplejwt.token_blacklist',
-    'users'
+    'users',
+    'transactions',
+    'notifications'
 ]
 
 MIDDLEWARE = [

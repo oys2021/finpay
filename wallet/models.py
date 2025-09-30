@@ -10,7 +10,7 @@ class Wallet(models.Model):
 
 class WalletBalance(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="balances")
-    currency = models.CharField(max_length=10)  
+    currency = models.CharField(max_length=10, default="USD") 
     balance = models.DecimalField(max_digits=20, decimal_places=2, default=0)
 
     class Meta:
